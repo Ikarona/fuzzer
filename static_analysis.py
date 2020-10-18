@@ -1,7 +1,7 @@
 from idautils import *
 from idc import *
 from idaapi import *
-
+from collections import deque
 def cmp_operands_finder():
     #проходимся по каждому сегменту и находим там cmp, получаем её операнды
     operands=[] #в будущем список значений операндов
@@ -16,4 +16,53 @@ def cmp_operands_finder():
                         operands.append(value)
     return operands 
 
-def branch
+def get_children(BB): # получаем list базисных блоков, которые являются детьми данного
+    childList = []
+    startsDeque = deque([])
+    copyDeque = deque([])
+    if len(BB.succs()):
+        return childList
+    for succ_block in BB.succs(): # succs() - list of all successors
+        startsDeque.append(succ_block.startEA)
+        copyDeque.append(succ_block)
+    while copyDeque:
+        currBlock = copyDeque.popleft()
+        startsDeque.popleft()
+        if currBlock not in childList:
+            childList.append(currBlock.startEA)
+        for curBlSucc in currBlock.succs(): # проверка на всякий случай
+            if (curBlSucc.startEA not in childList) and (curBlSucc.startEA not in startsDeque):
+                copyDeque.append(curBlSucc)
+                startsDeque.append(curBlSucc)
+    del startsDeque
+    del copyDeque
+    return childList
+
+def if_path(fromBB, toBB, backedge): 
+    #backedge  - list of tuple(startEA, endEA)
+    visitedId = set()
+    noPath = False
+    succsDeque = deque([])
+    if fromBB.startEA == toBB.startEA:
+        return True
+    for fsucc in fromBB.succs():
+        if((fromBB.startEA, fsucc.startEA)) not in backedge:
+            noPath = True
+        visitedId.add(fsucc.id)
+        succsDeque.append(fsucc)
+    if noPath == False:
+        return noPath
+    while succsDeque:
+        currSucc = succsDeque.pop()
+        if currSucc.id == toBB.id:
+            return noPath
+        for ccurrSucc in currSucc.succs():
+            if ccurrSucc.id not in visitedId and (currSucc.startEA, ccurrSucc.startEA) not in backedge:
+                succsDeque.append(ccurrSucc)
+                visitedId.add(ccurrSucc.Id)
+            else:
+                continue
+    return False
+
+def get_backedges(root):
+    
