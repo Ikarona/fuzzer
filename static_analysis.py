@@ -2,6 +2,8 @@ from idautils import *
 from idc import *
 from idaapi import *
 from collections import deque
+
+
 def cmp_operands_finder():
     #проходимся по каждому сегменту и находим там cmp, получаем её операнды
     operands=[] #в будущем список значений операндов
@@ -65,4 +67,36 @@ def if_path(fromBB, toBB, backedge):
     return False
 
 def get_backedges(root):
-    
+    tmp=deque([])
+    visited=set()
+    backedge=[]# a list of tuple of the form (startEA,endEA), denoting an edge.
+    tmp.append(root)
+    while len(tmp)>0:
+        cur=tmp.popleft()
+        visited.add(cur.startEA)
+        for ccur in cur.succs():
+            if ccur.startEA in visited and get_path(ccur,cur,backedge) == True:
+                backedge .append((cur.startEA,ccur.startEA))
+            elif ccur.startEA not in visited:
+                visited.add(ccur.startEA)
+                tmp.append(ccur)
+            else:
+                pass
+    # now we repeat the above step to prune backedges that we got so far.
+    tmp.clear()
+    visited=set()
+    backedgeF=[]
+    tmp.append(root)
+    while len(tmp)>0:
+        cur=tmp.popleft()
+        visited.add(cur.startEA)
+        for ccur in cur.succs():
+            if ccur.startEA in visited and get_path(ccur,cur,backedge) == True:
+                backedgeF.append((cur.startEA,ccur.startEA))
+            elif ccur.startEA not in visited:
+                visited.add(ccur.startEA)
+                tmp.append(ccur)
+                #print "visited: %x"% ccur.startEA
+            else:
+                pass
+    return backedge
