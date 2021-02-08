@@ -5,12 +5,14 @@ class Data:
     random_obj = None
     denominator = 50
     cut_first = 0.1
-    cut_second = 0.7
+    cut_second = 0.3
+    cut_third = 0.5
+    cit_fourth = 0.7
     def __init__(self, random_object, den=50):
         self.random_obj = random_object
         self.denominator = den
 
-    mutators = [crossover, mix_random, add_random, del_rand_part,del_rand_endpart]
+    #mutators = [crossover, mix_random, add_random, del_rand_part,del_rand_endpart]
 
     def random_str(self, length, sourse=None): # создание произвольно строки
         if sourse is None:
@@ -72,3 +74,23 @@ class Data:
         child1 = parent1[:cut_point1] + parent2[cut_point2:]
         child2 = parent2[:cut_point2] + parent1[cut_point1:]
         return child1, child2
+
+    def doubleCrossover(self, parent1, parent2):
+        cut_place1 = random.uniform(self.cut_first, self.cut_second)
+        cut_place2 = random.uniform(self.cut_second, self.cut_third)
+        len1 = len(parent1)
+        len2 = len(parent2)
+        cut_point11 = int( len1 * cut_place1 )
+        cut_point12 = int( len1 * cut_place2 )
+        cut_point21 = int( len2 * cut_place1 )
+        cut_point22 = int( len2 * cut_place2 )
+        child1 = parent1[:cut_point11]+parent2[cut_point21:cut_point22]+parent1[cut_point12:]
+        child2 = parent2[:cut_point21]+parent1[cut_point11:cut_point12]+parent2[cut_point22:]
+        return child1, child2
+
+    def tripleCrossover(self, parent1, parent2):
+        cut_place1 = random.uniform(self.cut_first, self.cut_second)
+        cut_place2 = random.uniform(self.cut_second, self.cut_third)
+        cut_place3 = random.uniform(self.cut_first, self.cut_second)
+
+    mutators = [crossover, mix_random, add_random, del_rand_part,del_rand_endpart]
